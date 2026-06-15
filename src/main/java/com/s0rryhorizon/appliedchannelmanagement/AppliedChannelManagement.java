@@ -18,6 +18,7 @@ import com.s0rryhorizon.appliedchannelmanagement.init.AcmBlockEntities;
 import com.s0rryhorizon.appliedchannelmanagement.init.AcmBlocks;
 import com.s0rryhorizon.appliedchannelmanagement.init.AcmItems;
 import com.s0rryhorizon.appliedchannelmanagement.init.AcmMenus;
+import com.s0rryhorizon.appliedchannelmanagement.init.AcmCreativeTabs;
 import com.s0rryhorizon.appliedchannelmanagement.network.AcmNetwork;
 import com.s0rryhorizon.appliedchannelmanagement.runtime.WirelessLinkManager;
 
@@ -32,6 +33,7 @@ public final class AppliedChannelManagement {
         AcmBlockEntities.REGISTER.register(modBus);
         AcmMenus.REGISTER.register(modBus);
         AcmBlockEntities.registerCapabilities(modBus);
+        modBus.addListener(AcmCreativeTabs::addItems);
         modBus.addListener(AcmNetwork::register);
         GridServices.register(IChannelPoolService.class, ChannelPoolService.class);
         NeoForge.EVENT_BUS.addListener(WirelessLinkManager::onServerTick);

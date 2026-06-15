@@ -32,6 +32,8 @@ The AE2 dependency is intentionally locked because the mod applies a narrow Mixi
 
 Right-click either device to open its configuration screen. Hub whitelist entries accept online player names or UUIDs separated by commas.
 
+Both devices appear in the Applied Energistics 2 creative tab. Their standard shaped recipes are discovered automatically by JEI; no separate JEI plugin is required.
+
 ## Channel Model
 
 ```text
