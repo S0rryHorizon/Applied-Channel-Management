@@ -1,0 +1,77 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.74'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    maven { url = 'https://modmaven.dev/' }
+    mavenCentral()
+}
+
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
+dependencies {
+    compileOnly "org.appliedenergistics:appliedenergistics2:${ae2_version}"
+    runtimeOnly "org.appliedenergistics:appliedenergistics2:${ae2_version}"
+    runtimeOnly "org.appliedenergistics:guideme:${guideme_version}"
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core:3.27.3'
+}
+
+neoForge {
+    version = neo_version
+
+    mods {
+        applied_channel_management {
+            sourceSet sourceSets.main
+        }
+    }
+
+    runs {
+        configureEach {
+            gameDirectory = project.file('run')
+            logLevel = org.slf4j.event.Level.INFO
+        }
+        client { client() }
+        server { server() }
+        gameTestServer { type = 'gameTestServer' }
+        data {
+            data()
+            programArguments.addAll '--mod', mod_id, '--all', '--output', file('src/generated/resources').absolutePath,
+                    '--existing', file('src/main/resources').absolutePath
+        }
+    }
+
+    unitTest {
+        enable()
+        testedMod = mods.applied_channel_management
+    }
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    def props = [mod_id: mod_id, mod_name: mod_name, mod_version: mod_version,
+                 mod_authors: mod_authors, mod_description: mod_description,
+                 minecraft_version: minecraft_version, neo_version: neo_version,
+                 ae2_version: ae2_version]
+    inputs.properties props
+    filesMatching('META-INF/neoforge.mods.toml') { expand props }
+}

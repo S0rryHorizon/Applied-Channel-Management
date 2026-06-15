@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:block",
+  "pools": [{
+    "rolls": 1,
+    "entries": [{ "type": "minecraft:item", "name": "applied_channel_management:me_channel_distributor" }],
+    "conditions": [{ "condition": "minecraft:survives_explosion" }]
+  }]
+}

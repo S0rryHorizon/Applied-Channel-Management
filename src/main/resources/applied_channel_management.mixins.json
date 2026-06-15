@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "com.s0rryhorizon.appliedchannelmanagement.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PathingCalculationMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

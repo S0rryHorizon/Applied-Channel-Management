@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["DWD", "EAE", "DWD"],
+  "key": {
+    "D": { "item": "ae2:fluix_smart_dense_cable" },
+    "W": { "item": "ae2:wireless_receiver" },
+    "E": { "item": "ae2:engineering_processor" },
+    "A": { "item": "ae2:dense_energy_cell" }
+  },
+  "result": { "id": "applied_channel_management:me_channel_distributor", "count": 1 }
+}
