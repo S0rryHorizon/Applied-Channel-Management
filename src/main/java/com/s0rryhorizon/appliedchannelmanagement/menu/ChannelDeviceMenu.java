@@ -30,6 +30,7 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
     private final int wiredUsed;
     private final int wirelessUsed;
     private final String authorizedHubs;
+    private final String availablePlayers;
     private final boolean online;
     private final String details;
 
@@ -45,6 +46,7 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
         wiredUsed = buffer.readInt();
         wirelessUsed = buffer.readInt();
         authorizedHubs = buffer.readUtf(4096);
+        availablePlayers = buffer.readUtf(4096);
         online = buffer.readBoolean();
         details = buffer.readUtf(4096);
     }
@@ -63,6 +65,7 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
         this.wiredUsed = 0;
         this.wirelessUsed = 0;
         this.authorizedHubs = "";
+        this.availablePlayers = "";
         this.online = false;
         this.details = "";
     }
@@ -74,8 +77,13 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
         buffer.writeBoolean(isHub);
         if (device instanceof ChannelHubBlockEntity hub) {
             buffer.writeUtf(hub.getNetworkName(), 128);
-            buffer.writeUtf(hub.getWhitelist().stream().map(Object::toString).sorted().collect(Collectors.joining(",")),
-                    4096);
+            buffer.writeUtf(hub.getWhitelist().stream()
+                    .map(id -> {
+                        ServerPlayer online = player.getServer().getPlayerList().getPlayer(id);
+                        return online != null ? online.getGameProfile().getName() : id.toString();
+                    })
+                    .sorted()
+                    .collect(Collectors.joining(",")), 4096);
             buffer.writeUtf("", 128);
             buffer.writeInt(0);
             buffer.writeInt(hub.getSnapshot().totalCapacity());
@@ -101,6 +109,11 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
                 .filter(name -> !name.isBlank())
                 .collect(Collectors.joining(", "));
         buffer.writeUtf(names, 4096);
+        String playerNames = player.getServer().getPlayerList().getPlayers().stream()
+                .map(serverPlayer -> serverPlayer.getGameProfile().getName())
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.joining(", "));
+        buffer.writeUtf(playerNames, 4096);
         boolean online = device instanceof ChannelDistributorBlockEntity distributor
                 ? WirelessLinkManager.isLinked(distributor.getDistributorId())
                 : device.getMainNode().isReady() && device.getMainNode().isPowered();
@@ -150,6 +163,10 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
 
     public String authorizedHubs() {
         return authorizedHubs;
+    }
+
+    public String availablePlayers() {
+        return availablePlayers;
     }
 
     public boolean online() {

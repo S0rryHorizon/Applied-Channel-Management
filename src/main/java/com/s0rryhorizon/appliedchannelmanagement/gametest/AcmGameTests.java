@@ -40,13 +40,13 @@ public final class AcmGameTests {
         BlockPos hubPos = new BlockPos(2, 1, 1);
         BlockPos sourcePowerPos = new BlockPos(1, 1, 2);
         BlockPos distributorPos = new BlockPos(8, 1, 1);
-        BlockPos remotePowerPos = new BlockPos(9, 1, 1);
+        BlockPos remoteDevicePos = new BlockPos(9, 1, 1);
 
         helper.setBlock(controllerPos, AEBlocks.CONTROLLER.block());
         helper.setBlock(sourcePowerPos, AEBlocks.CREATIVE_ENERGY_CELL.block());
         helper.setBlock(hubPos, AcmBlocks.ME_CHANNEL_HUB.get());
         helper.setBlock(distributorPos, AcmBlocks.ME_CHANNEL_DISTRIBUTOR.get());
-        helper.setBlock(remotePowerPos, AEBlocks.CREATIVE_ENERGY_CELL.block());
+        helper.setBlock(remoteDevicePos, AEBlocks.INTERFACE.block());
 
         var hub = (ChannelHubBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(hubPos));
         var distributor = (ChannelDistributorBlockEntity) helper.getLevel()

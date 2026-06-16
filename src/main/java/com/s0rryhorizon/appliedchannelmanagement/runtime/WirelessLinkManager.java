@@ -164,8 +164,7 @@ public final class WirelessLinkManager {
     }
 
     private static boolean canConnect(ChannelDistributorBlockEntity distributor, ChannelHubBlockEntity hub) {
-        if (!distributor.getMainNode().isReady() || !distributor.getMainNode().isPowered()
-                || !hub.canUse(distributor.getOwnerId())) {
+        if (!distributor.getMainNode().isReady() || !hub.canUse(distributor.getOwnerId())) {
             return false;
         }
         if (distributor.getMainNode().getGrid().getPathingService().getControllerState() != ControllerState.NO_CONTROLLER) {
@@ -225,7 +224,7 @@ public final class WirelessLinkManager {
         }
         ChannelDistributorBlockEntity distributor = DISTRIBUTORS.get(distributorId);
         if (distributor != null) {
-            distributor.setLinkPowerUsage(false);
+            distributor.clearLinkPowerUsage();
         }
     }
 

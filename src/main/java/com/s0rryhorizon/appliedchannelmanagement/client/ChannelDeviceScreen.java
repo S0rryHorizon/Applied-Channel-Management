@@ -1,5 +1,8 @@
 package com.s0rryhorizon.appliedchannelmanagement.client;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -14,6 +17,10 @@ import com.s0rryhorizon.appliedchannelmanagement.network.DeviceActionPayload;
 public final class ChannelDeviceScreen extends AbstractContainerScreen<ChannelDeviceMenu> {
     private EditBox primaryInput;
     private EditBox secondaryInput;
+    private List<String> selectablePlayers = List.of();
+    private List<String> selectableHubs = List.of();
+    private int selectedPlayerIndex;
+    private int selectedHubIndex;
 
     public ChannelDeviceScreen(ChannelDeviceMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -26,6 +33,8 @@ public final class ChannelDeviceScreen extends AbstractContainerScreen<ChannelDe
         super.init();
         int x = leftPos + 12;
         int y = topPos + 34;
+        selectablePlayers = splitOptions(menu.availablePlayers());
+        selectableHubs = splitOptions(menu.authorizedHubs());
         primaryInput = new EditBox(font, x, y, 154, 20,
                 Component.literal(menu.isHub() ? "Hub name" : "Target hub"));
         primaryInput.setMaxLength(128);
@@ -40,11 +49,45 @@ public final class ChannelDeviceScreen extends AbstractContainerScreen<ChannelDe
 
         addRenderableWidget(Button.builder(Component.literal("Apply"), button -> applyChanges())
                 .bounds(leftPos + 174, y, 62, 20).build());
-        if (!menu.isHub()) {
+        if (menu.isHub()) {
+            addRenderableWidget(Button.builder(Component.literal("Player +"), button -> appendNextPlayer())
+                    .bounds(leftPos + 174, y + 42, 62, 20).build());
+        } else {
+            addRenderableWidget(Button.builder(Component.literal("Hub +"), button -> selectNextHub())
+                    .bounds(leftPos + 174, y + 21, 62, 20).build());
             addRenderableWidget(Button.builder(Component.literal("Unbind"), button -> {
                 primaryInput.setValue("");
                 applyChanges();
             }).bounds(leftPos + 174, y + 42, 62, 20).build());
+        }
+    }
+
+    private static List<String> splitOptions(String value) {
+        if (value.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(option -> !option.isBlank())
+                .toList();
+    }
+
+    private void appendNextPlayer() {
+        if (selectablePlayers.isEmpty()) {
+            return;
+        }
+        String playerName = selectablePlayers.get(selectedPlayerIndex++ % selectablePlayers.size());
+        List<String> current = splitOptions(secondaryInput.getValue());
+        if (current.stream().noneMatch(playerName::equalsIgnoreCase)) {
+            secondaryInput.setValue(secondaryInput.getValue().isBlank()
+                    ? playerName
+                    : secondaryInput.getValue() + "," + playerName);
+        }
+    }
+
+    private void selectNextHub() {
+        if (!selectableHubs.isEmpty()) {
+            primaryInput.setValue(selectableHubs.get(selectedHubIndex++ % selectableHubs.size()));
         }
     }
 
@@ -79,6 +122,8 @@ public final class ChannelDeviceScreen extends AbstractContainerScreen<ChannelDe
                     menu.online() ? 0x66FF99 : 0xFF7777, false);
             graphics.drawString(font, "Distributors: " + (menu.details().isBlank() ? "none" : menu.details()),
                     12, 128, 0xFFFFFF, false);
+            graphics.drawString(font, "Online players: " + (menu.availablePlayers().isBlank() ? "none"
+                    : menu.availablePlayers()), 12, 140, 0xFFFFFF, false);
         } else {
             graphics.drawString(font, "Target hub name", 12, 24, 0xA8D8FF, false);
             graphics.drawString(font, "Integer priority (higher first)", 12, 66, 0xA8D8FF, false);

@@ -22,7 +22,7 @@ public final class ChannelDistributorBlockEntity extends AbstractChannelDeviceBl
     private int priority;
 
     public ChannelDistributorBlockEntity(BlockPos pos, BlockState state) {
-        super(AcmBlockEntities.DISTRIBUTOR.get(), pos, state, AcmServerConfig.DISTRIBUTOR_POWER.getDefault());
+        super(AcmBlockEntities.DISTRIBUTOR.get(), pos, state, 0);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, ChannelDistributorBlockEntity distributor) {
@@ -57,6 +57,10 @@ public final class ChannelDistributorBlockEntity extends AbstractChannelDeviceBl
         mainNode.setIdlePowerUsage(crossDimension
                 ? AcmServerConfig.CROSS_DIMENSION_POWER.get()
                 : AcmServerConfig.DISTRIBUTOR_POWER.get());
+    }
+
+    public void clearLinkPowerUsage() {
+        mainNode.setIdlePowerUsage(0);
     }
 
     @Override
