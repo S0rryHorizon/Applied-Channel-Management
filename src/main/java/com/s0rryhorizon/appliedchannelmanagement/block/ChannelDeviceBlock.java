@@ -14,6 +14,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.serialization.MapCodec;
@@ -78,7 +81,9 @@ public final class ChannelDeviceBlock extends BaseEntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (placer instanceof Player player
                 && level.getBlockEntity(pos) instanceof AbstractChannelDeviceBlockEntity device) {
-            device.setOwner(player.getUUID());
+            if (device.getOwnerId().equals(new java.util.UUID(0, 0))) {
+                device.setOwner(player.getUUID());
+            }
         }
     }
 
@@ -95,15 +100,42 @@ public final class ChannelDeviceBlock extends BaseEntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (player.isShiftKeyDown() && stack.is(WRENCH) && state.is(WRENCH_DISASSEMBLE)) {
+        if (stack.is(WRENCH)) {
             if (!level.isClientSide) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
-                dropResources(state, level, pos, blockEntity, player, stack);
+                popSavedStack(level, pos, state, blockEntity);
+                level.levelEvent(null, 2001, pos, Block.getId(state));
                 level.removeBlock(pos, false);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    @Override
+    public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state,
+            @Nullable BlockEntity blockEntity, ItemStack tool) {
+        if (!level.isClientSide && hasSilkTouch(level, tool)
+                && blockEntity instanceof AbstractChannelDeviceBlockEntity) {
+            player.awardStat(Stats.BLOCK_MINED.get(this));
+            player.causeFoodExhaustion(0.005F);
+            popSavedStack(level, pos, state, blockEntity);
+            return;
+        }
+        super.playerDestroy(level, player, pos, state, blockEntity, tool);
+    }
+
+    private static boolean hasSilkTouch(Level level, ItemStack tool) {
+        var enchantments = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        return EnchantmentHelper.getItemEnchantmentLevel(enchantments.getOrThrow(Enchantments.SILK_TOUCH), tool) > 0;
+    }
+
+    private static void popSavedStack(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
+        ItemStack drop = new ItemStack(state.getBlock());
+        if (blockEntity != null) {
+            blockEntity.saveToItem(drop, level.registryAccess());
+        }
+        popResource(level, pos, drop);
     }
 
     @Nullable

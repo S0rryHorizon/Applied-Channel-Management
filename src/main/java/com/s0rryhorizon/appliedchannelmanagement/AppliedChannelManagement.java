@@ -4,14 +4,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 
 import appeng.api.networking.GridServices;
 
 import com.s0rryhorizon.appliedchannelmanagement.config.AcmServerConfig;
+import com.s0rryhorizon.appliedchannelmanagement.client.AcmClient;
 import com.s0rryhorizon.appliedchannelmanagement.grid.ChannelPoolService;
 import com.s0rryhorizon.appliedchannelmanagement.grid.IChannelPoolService;
 import com.s0rryhorizon.appliedchannelmanagement.init.AcmBlockEntities;
@@ -40,5 +43,8 @@ public final class AppliedChannelManagement {
         GridServices.register(IChannelPoolService.class, ChannelPoolService.class);
         NeoForge.EVENT_BUS.addListener(WirelessLinkManager::onServerTick);
         container.registerConfig(ModConfig.Type.SERVER, AcmServerConfig.SPEC);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            AcmClient.registerConfigScreen(container);
+        }
     }
 }
