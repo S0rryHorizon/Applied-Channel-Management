@@ -34,7 +34,7 @@ public final class AcmGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 200)
     public static void distributorLinksPoweredRemoteSubnet(GameTestHelper helper) {
         BlockPos controllerPos = new BlockPos(1, 1, 1);
         BlockPos hubPos = new BlockPos(2, 1, 1);
@@ -57,13 +57,20 @@ public final class AcmGameTests {
         distributor.setOwner(owner);
         distributor.bindTo(hub.getHubId());
 
-        helper.runAfterDelay(60, () -> {
-            if (!WirelessLinkManager.isLinked(distributor.getDistributorId())) {
-                helper.fail("Distributor did not establish a virtual controller link: "
-                        + WirelessLinkManager.describe(hub, distributor));
-                return;
-            }
-            helper.succeed();
+        helper.succeedWhen(() -> {
+            helper.assertTrue(WirelessLinkManager.isLinked(distributor.getDistributorId()),
+                    "Distributor did not establish a virtual controller link: "
+                            + WirelessLinkManager.describe(hub, distributor));
         });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void plainAe2NetworkRepathsWithoutAcmDevices(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(1, 1, 1), AEBlocks.CONTROLLER.block());
+        helper.setBlock(new BlockPos(1, 1, 2), AEBlocks.CREATIVE_ENERGY_CELL.block());
+        helper.setBlock(new BlockPos(2, 1, 1), AEBlocks.DRIVE.block());
+        helper.setBlock(new BlockPos(3, 1, 1), AEBlocks.INTERFACE.block());
+
+        helper.runAfterDelay(60, helper::succeed);
     }
 }

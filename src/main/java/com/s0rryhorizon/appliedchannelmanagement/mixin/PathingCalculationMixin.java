@@ -80,6 +80,10 @@ public abstract class PathingCalculationMixin {
     @Inject(method = "compute", at = @At(value = "INVOKE", target = "Lappeng/me/pathfinding/PathingCalculation;propagateAssignments()V"))
     private void acm$allocateWirelessAfterWired(CallbackInfo ci) {
         acm$wiredAllocated = acm$allocated;
+        if (acm$wirelessRoots.isEmpty()) {
+            return;
+        }
+
         acm$wirelessPhase = true;
         acm$wirelessRoots.sort(Comparator.comparing(WirelessLinkManager::getMetadata,
                 WirelessLinkMetadata.ORDERING));
@@ -106,9 +110,11 @@ public abstract class PathingCalculationMixin {
     private void acm$countAllocation(appeng.me.GridNode start, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             acm$allocated++;
-            WirelessLinkMetadata metadata = acm$findWirelessLink(start);
-            if (metadata != null) {
-                acm$distributorAllocations.merge(metadata.distributorId(), 1, Integer::sum);
+            if (acm$wirelessPhase) {
+                WirelessLinkMetadata metadata = acm$findWirelessLink(start);
+                if (metadata != null) {
+                    acm$distributorAllocations.merge(metadata.distributorId(), 1, Integer::sum);
+                }
             }
         }
     }
@@ -116,7 +122,8 @@ public abstract class PathingCalculationMixin {
     @Unique
     private WirelessLinkMetadata acm$findWirelessLink(IPathItem start) {
         IPathItem current = start;
-        while (current != null) {
+        var seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<IPathItem, Boolean>());
+        while (current != null && seen.add(current)) {
             if (current instanceof GridConnection connection) {
                 WirelessLinkMetadata metadata = WirelessLinkManager.getMetadata(connection);
                 if (metadata != null) {
