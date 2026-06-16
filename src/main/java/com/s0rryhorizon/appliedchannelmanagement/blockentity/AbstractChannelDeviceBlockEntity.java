@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -19,6 +21,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.component.CustomData;
 
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.GridHelper;
@@ -27,10 +30,13 @@ import appeng.api.networking.IGridNodeListener;
 import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.util.AECableType;
+import appeng.blockentity.AEBaseBlockEntity;
+import appeng.util.SettingsFrom;
 
 import com.s0rryhorizon.appliedchannelmanagement.menu.ChannelDeviceMenu;
 
-public abstract class AbstractChannelDeviceBlockEntity extends BlockEntity implements IInWorldGridNodeHost, MenuProvider {
+public abstract class AbstractChannelDeviceBlockEntity extends AEBaseBlockEntity
+        implements IInWorldGridNodeHost, MenuProvider {
     private static final IGridNodeListener<AbstractChannelDeviceBlockEntity> NODE_LISTENER =
             new IGridNodeListener<>() {
                 @Override
@@ -119,19 +125,38 @@ public abstract class AbstractChannelDeviceBlockEntity extends BlockEntity imple
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void loadTag(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadTag(tag, registries);
         mainNode.loadFromNBT(tag);
+        loadPortableData(tag, registries);
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        mainNode.saveToNBT(tag);
+        savePortableData(tag, registries);
+    }
+
+    @Override
+    public void exportSettings(SettingsFrom source, DataComponentMap.Builder output, Player player) {
+        super.exportSettings(source, output, player);
+        if (source == SettingsFrom.DISMANTLE_ITEM && getLevel() != null) {
+            CompoundTag tag = new CompoundTag();
+            savePortableData(tag, getLevel().registryAccess());
+            BlockEntity.addEntityType(tag, getType());
+            output.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(tag));
+        }
+    }
+
+    private void loadPortableData(CompoundTag tag, HolderLookup.Provider registries) {
         if (tag.hasUUID("owner")) {
             ownerId = tag.getUUID("owner");
         }
         loadDeviceData(tag, registries);
     }
 
-    @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        mainNode.saveToNBT(tag);
+    private void savePortableData(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putUUID("owner", ownerId);
         saveDeviceData(tag, registries);
     }

@@ -2,12 +2,14 @@ package com.s0rryhorizon.appliedchannelmanagement.init;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import appeng.api.AECapabilities;
+import appeng.blockentity.AEBaseBlockEntity;
 
 import com.s0rryhorizon.appliedchannelmanagement.AppliedChannelManagement;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.ChannelDistributorBlockEntity;
@@ -26,11 +28,19 @@ public final class AcmBlockEntities {
 
     public static void registerCapabilities(IEventBus modBus) {
         modBus.addListener(AcmBlockEntities::onRegisterCapabilities);
+        modBus.addListener(AcmBlockEntities::onCommonSetup);
     }
 
     private static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, HUB.get(), (be, side) -> be);
         event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, DISTRIBUTOR.get(), (be, side) -> be);
+    }
+
+    private static void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            AEBaseBlockEntity.registerBlockEntityItem(HUB.get(), AcmItems.ME_CHANNEL_HUB.get());
+            AEBaseBlockEntity.registerBlockEntityItem(DISTRIBUTOR.get(), AcmItems.ME_CHANNEL_DISTRIBUTOR.get());
+        });
     }
 
     private AcmBlockEntities() {

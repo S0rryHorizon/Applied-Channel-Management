@@ -51,6 +51,8 @@ public final class AcmGameTests {
         var hub = (ChannelHubBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(hubPos));
         var distributor = (ChannelDistributorBlockEntity) helper.getLevel()
                 .getBlockEntity(helper.absolutePos(distributorPos));
+        helper.assertTrue(hub != null, "Hub block entity was not created");
+        helper.assertTrue(distributor != null, "Distributor block entity was not created");
         UUID owner = UUID.randomUUID();
         hub.setOwner(owner);
         hub.setNetworkName("gt-" + hub.getHubId().toString().substring(0, 8));
