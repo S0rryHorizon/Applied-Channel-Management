@@ -111,6 +111,7 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
         buffer.writeUtf(names, 4096);
         String playerNames = player.getServer().getPlayerList().getPlayers().stream()
                 .map(serverPlayer -> serverPlayer.getGameProfile().getName())
+                .filter(name -> name != null && !name.isBlank())
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(Collectors.joining(", "));
         buffer.writeUtf(playerNames, 4096);
