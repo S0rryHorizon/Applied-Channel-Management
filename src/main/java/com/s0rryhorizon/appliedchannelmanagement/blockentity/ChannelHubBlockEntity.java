@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.s0rryhorizon.appliedchannelmanagement.config.AcmServerConfig;
 import com.s0rryhorizon.appliedchannelmanagement.grid.ChannelPoolSnapshot;
 import com.s0rryhorizon.appliedchannelmanagement.init.AcmBlockEntities;
+import com.s0rryhorizon.appliedchannelmanagement.init.AcmItems;
 import com.s0rryhorizon.appliedchannelmanagement.runtime.WirelessLinkManager;
 
 public final class ChannelHubBlockEntity extends AbstractChannelDeviceBlockEntity {
@@ -27,6 +28,7 @@ public final class ChannelHubBlockEntity extends AbstractChannelDeviceBlockEntit
 
     public ChannelHubBlockEntity(BlockPos pos, BlockState state) {
         super(AcmBlockEntities.HUB.get(), pos, state, AcmServerConfig.HUB_POWER.getDefault());
+        mainNode.setVisualRepresentation(AcmItems.ME_CHANNEL_HUB.get());
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, ChannelHubBlockEntity hub) {

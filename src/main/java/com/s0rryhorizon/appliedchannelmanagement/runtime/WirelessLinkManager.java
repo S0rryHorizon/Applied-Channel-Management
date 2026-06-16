@@ -74,6 +74,23 @@ public final class WirelessLinkManager {
                 .toList();
     }
 
+    public static List<String> getConnectedDistributorSummaries(UUID hubId) {
+        return getConnectedDistributors(hubId).stream()
+                .map(DISTRIBUTORS::get)
+                .filter(distributor -> distributor != null && distributor.getLevel() != null)
+                .map(WirelessLinkManager::summarizeDistributor)
+                .toList();
+    }
+
+    private static String summarizeDistributor(ChannelDistributorBlockEntity distributor) {
+        if (!distributor.getDeviceName().isBlank()) {
+            return distributor.getDeviceName();
+        }
+        String dimension = distributor.getLevel().dimension().location().toString();
+        var pos = distributor.getBlockPos();
+        return dimension + " @ " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
+    }
+
     public static String describe(ChannelHubBlockEntity hub, ChannelDistributorBlockEntity distributor) {
         String hubState = hub.getMainNode().isReady()
                 ? "ready,powered=" + hub.getMainNode().isPowered() + ",controller="

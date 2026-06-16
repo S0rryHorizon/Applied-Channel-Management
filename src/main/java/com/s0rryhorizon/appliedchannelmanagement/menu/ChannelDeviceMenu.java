@@ -1,7 +1,6 @@
 package com.s0rryhorizon.appliedchannelmanagement.menu;
 
 import java.util.Comparator;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import net.minecraft.core.BlockPos;
@@ -56,7 +55,8 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
         this.position = position;
         var device = inventory.player.level().getBlockEntity(position);
         this.hub = device instanceof ChannelHubBlockEntity;
-        this.initialName = hub ? ((ChannelHubBlockEntity) device).getNetworkName() : "";
+        this.initialName = device instanceof ChannelHubBlockEntity channelHub ? channelHub.getNetworkName()
+                : device instanceof ChannelDistributorBlockEntity distributor ? distributor.getDeviceName() : "";
         this.initialWhitelist = "";
         this.initialTarget = "";
         this.initialPriority = device instanceof ChannelDistributorBlockEntity distributor
@@ -90,7 +90,7 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
             buffer.writeInt(hub.getSnapshot().wiredUsed());
             buffer.writeInt(hub.getSnapshot().wirelessUsed());
         } else if (device instanceof ChannelDistributorBlockEntity distributor) {
-            buffer.writeUtf("", 128);
+            buffer.writeUtf(distributor.getDeviceName(), 128);
             buffer.writeUtf("", 4096);
             var data = HubRegistrySavedData.get(player.getServer());
             String targetName = distributor.getTargetHubId().flatMap(data::get)
@@ -120,8 +120,7 @@ public final class ChannelDeviceMenu extends AbstractContainerMenu {
                 : device.getMainNode().isReady() && device.getMainNode().isPowered();
         buffer.writeBoolean(online);
         String details = device instanceof ChannelHubBlockEntity hub
-                ? WirelessLinkManager.getConnectedDistributors(hub.getHubId()).stream()
-                        .map(UUID::toString).collect(Collectors.joining(", "))
+                ? String.join("\n", WirelessLinkManager.getConnectedDistributorSummaries(hub.getHubId()))
                 : "";
         buffer.writeUtf(details, 4096);
     }

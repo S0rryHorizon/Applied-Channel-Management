@@ -34,6 +34,7 @@ public final class AcmNetwork {
         switch (payload.action()) {
             case "hub_name" -> updateHubName(player, device, payload.value());
             case "hub_acl" -> updateHubAcl(player, device, payload.value());
+            case "distributor_name" -> updateDistributorName(player, device, payload.value());
             case "distributor_target" -> updateDistributorTarget(player, device, payload.value());
             case "distributor_priority" -> updateDistributorPriority(player, device, payload.value());
             default -> {
@@ -48,18 +49,18 @@ public final class AcmNetwork {
         }
         String previous = hub.getNetworkName();
         if (!hub.setNetworkName(value)) {
-            player.sendSystemMessage(Component.literal("Hub name must contain 1-32 characters."));
+            player.sendSystemMessage(Component.translatable("message.applied_channel_management.hub_name_invalid"));
             return;
         }
         HubRegistrySavedData data = HubRegistrySavedData.get(player.getServer());
         if (!data.update(hub)) {
             hub.setNetworkName(previous);
             data.update(hub);
-            player.sendSystemMessage(Component.literal("That hub name is already in use (case-insensitive)."));
+            player.sendSystemMessage(Component.translatable("message.applied_channel_management.hub_name_duplicate"));
             return;
         }
         WirelessLinkManager.requestReconcile();
-        player.sendSystemMessage(Component.literal("Hub name updated."));
+        player.sendSystemMessage(Component.translatable("message.applied_channel_management.hub_name_updated"));
     }
 
     private static void updateHubAcl(ServerPlayer player, AbstractChannelDeviceBlockEntity device, String value) {
@@ -82,7 +83,8 @@ public final class AcmNetwork {
                 try {
                     ids.add(UUID.fromString(token));
                 } catch (IllegalArgumentException exception) {
-                    player.sendSystemMessage(Component.literal("Unknown online player or UUID: " + token));
+                    player.sendSystemMessage(Component.translatable(
+                            "message.applied_channel_management.unknown_player_or_uuid", token));
                     return;
                 }
             }
@@ -90,7 +92,20 @@ public final class AcmNetwork {
         hub.setWhitelist(ids);
         HubRegistrySavedData.get(player.getServer()).update(hub);
         WirelessLinkManager.requestReconcile();
-        player.sendSystemMessage(Component.literal("Hub whitelist updated."));
+        player.sendSystemMessage(Component.translatable("message.applied_channel_management.hub_whitelist_updated"));
+    }
+
+    private static void updateDistributorName(ServerPlayer player, AbstractChannelDeviceBlockEntity device,
+            String value) {
+        if (!(device instanceof ChannelDistributorBlockEntity distributor) || !distributor.isOwnedByOrAdmin(player)) {
+            deny(player);
+            return;
+        }
+        if (!distributor.setDeviceName(value)) {
+            player.sendSystemMessage(Component.translatable("message.applied_channel_management.distributor_name_invalid"));
+            return;
+        }
+        player.sendSystemMessage(Component.translatable("message.applied_channel_management.distributor_name_updated"));
     }
 
     private static void updateDistributorTarget(ServerPlayer player, AbstractChannelDeviceBlockEntity device,
@@ -101,6 +116,7 @@ public final class AcmNetwork {
         }
         if (value.isBlank()) {
             distributor.bindTo(null);
+            player.sendSystemMessage(Component.translatable("message.applied_channel_management.distributor_unbound"));
             return;
         }
         String normalized = ChannelHubBlockEntity.normalizeName(value);
@@ -108,7 +124,7 @@ public final class AcmNetwork {
                 .filter(record -> record.normalizedName().equals(normalized))
                 .findFirst();
         if (target.isEmpty()) {
-            player.sendSystemMessage(Component.literal("No hub exists with that name."));
+            player.sendSystemMessage(Component.translatable("message.applied_channel_management.no_hub"));
             return;
         }
         if (!player.hasPermissions(2) && !target.get().canUse(player.getUUID())) {
@@ -116,7 +132,7 @@ public final class AcmNetwork {
             return;
         }
         distributor.bindTo(target.get().id());
-        player.sendSystemMessage(Component.literal("Distributor target updated."));
+        player.sendSystemMessage(Component.translatable("message.applied_channel_management.distributor_target_updated"));
     }
 
     private static void updateDistributorPriority(ServerPlayer player, AbstractChannelDeviceBlockEntity device,
@@ -127,12 +143,14 @@ public final class AcmNetwork {
         }
         try {
             distributor.setPriority(Integer.parseInt(value.trim()));
+            player.sendSystemMessage(Component.translatable(
+                    "message.applied_channel_management.distributor_priority_updated"));
         } catch (NumberFormatException exception) {
-            player.sendSystemMessage(Component.literal("Priority must be a 32-bit integer."));
+            player.sendSystemMessage(Component.translatable("message.applied_channel_management.priority_invalid"));
         }
     }
 
     private static void deny(ServerPlayer player) {
-        player.sendSystemMessage(Component.literal("You do not have permission to change this device."));
+        player.sendSystemMessage(Component.translatable("message.applied_channel_management.permission_denied"));
     }
 }

@@ -13,16 +13,19 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.s0rryhorizon.appliedchannelmanagement.config.AcmServerConfig;
 import com.s0rryhorizon.appliedchannelmanagement.init.AcmBlockEntities;
+import com.s0rryhorizon.appliedchannelmanagement.init.AcmItems;
 import com.s0rryhorizon.appliedchannelmanagement.runtime.WirelessLinkManager;
 
 public final class ChannelDistributorBlockEntity extends AbstractChannelDeviceBlockEntity {
     private UUID distributorId = UUID.randomUUID();
+    private String deviceName = "";
     @Nullable
     private UUID targetHubId;
     private int priority;
 
     public ChannelDistributorBlockEntity(BlockPos pos, BlockState state) {
         super(AcmBlockEntities.DISTRIBUTOR.get(), pos, state, 0);
+        mainNode.setVisualRepresentation(AcmItems.ME_CHANNEL_DISTRIBUTOR.get());
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, ChannelDistributorBlockEntity distributor) {
@@ -35,6 +38,21 @@ public final class ChannelDistributorBlockEntity extends AbstractChannelDeviceBl
 
     public Optional<UUID> getTargetHubId() {
         return Optional.ofNullable(targetHubId);
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public boolean setDeviceName(String name) {
+        String trimmed = name.trim();
+        if (trimmed.length() > AcmServerConfig.MAX_NAME_LENGTH.get()) {
+            return false;
+        }
+        deviceName = trimmed;
+        setChanged();
+        WirelessLinkManager.requestReconcile();
+        return true;
     }
 
     public void bindTo(@Nullable UUID hubId) {
@@ -68,6 +86,7 @@ public final class ChannelDistributorBlockEntity extends AbstractChannelDeviceBl
         if (tag.hasUUID("distributor_id")) {
             distributorId = tag.getUUID("distributor_id");
         }
+        deviceName = tag.getString("device_name");
         targetHubId = tag.hasUUID("target_hub") ? tag.getUUID("target_hub") : null;
         priority = tag.getInt("priority");
     }
@@ -75,6 +94,7 @@ public final class ChannelDistributorBlockEntity extends AbstractChannelDeviceBl
     @Override
     protected void saveDeviceData(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putUUID("distributor_id", distributorId);
+        tag.putString("device_name", deviceName);
         if (targetHubId != null) {
             tag.putUUID("target_hub", targetHubId);
         }
