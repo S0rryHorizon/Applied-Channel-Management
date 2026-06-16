@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "applied_channel_management:me_channel_hub" }
+  ],
+  "result": { "id": "applied_channel_management:me_channel_hub", "count": 1 }
+}

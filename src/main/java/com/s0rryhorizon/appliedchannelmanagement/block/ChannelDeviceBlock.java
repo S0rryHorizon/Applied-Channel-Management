@@ -29,7 +29,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.serialization.MapCodec;
 
-import com.s0rryhorizon.appliedchannelmanagement.AppliedChannelManagement;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.AbstractChannelDeviceBlockEntity;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.ChannelDistributorBlockEntity;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.ChannelHubBlockEntity;
@@ -40,8 +39,6 @@ import com.s0rryhorizon.appliedchannelmanagement.data.HubRegistrySavedData;
 public final class ChannelDeviceBlock extends BaseEntityBlock {
     private static final TagKey<Item> WRENCH = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("c", "tools/wrench"));
-    private static final TagKey<Block> WRENCH_DISASSEMBLE = TagKey.create(Registries.BLOCK,
-            ResourceLocation.fromNamespaceAndPath(AppliedChannelManagement.MOD_ID, "ae2_wrench_disassemble"));
 
     private final boolean hub;
 
@@ -103,9 +100,10 @@ public final class ChannelDeviceBlock extends BaseEntityBlock {
         if (stack.is(WRENCH)) {
             if (!level.isClientSide) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
-                popSavedStack(level, pos, state, blockEntity);
+                ItemStack drop = createSavedStack(level, state, blockEntity);
                 level.levelEvent(null, 2001, pos, Block.getId(state));
                 level.removeBlock(pos, false);
+                player.getInventory().placeItemBackInInventory(drop);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
@@ -131,11 +129,15 @@ public final class ChannelDeviceBlock extends BaseEntityBlock {
     }
 
     private static void popSavedStack(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
+        popResource(level, pos, createSavedStack(level, state, blockEntity));
+    }
+
+    private static ItemStack createSavedStack(Level level, BlockState state, @Nullable BlockEntity blockEntity) {
         ItemStack drop = new ItemStack(state.getBlock());
         if (blockEntity != null) {
             blockEntity.saveToItem(drop, level.registryAccess());
         }
-        popResource(level, pos, drop);
+        return drop;
     }
 
     @Nullable
