@@ -133,8 +133,9 @@ public final class WirelessLinkManager {
                 .toList();
         var originalRemoteGrids = new HashMap<UUID, IGrid>();
         for (ChannelDistributorBlockEntity distributor : candidates) {
-            if (distributor.getMainNode().isReady()) {
-                originalRemoteGrids.put(distributor.getDistributorId(), distributor.getMainNode().getGrid());
+            IGridNode distributorNode = distributor.getMainNode().getNode();
+            if (distributorNode != null) {
+                originalRemoteGrids.put(distributor.getDistributorId(), distributorNode.getGrid());
             }
         }
         var claimedRemoteGrids = new IdentityHashMap<IGrid, Boolean>();
@@ -164,13 +165,15 @@ public final class WirelessLinkManager {
     }
 
     private static boolean canConnect(ChannelDistributorBlockEntity distributor, ChannelHubBlockEntity hub) {
-        if (!distributor.getMainNode().isReady() || !hub.canUse(distributor.getOwnerId())) {
+        IGridNode distributorNode = distributor.getMainNode().getNode();
+        if (distributorNode == null || !hub.canUse(distributor.getOwnerId())) {
             return false;
         }
-        if (distributor.getMainNode().getGrid().getPathingService().getControllerState() != ControllerState.NO_CONTROLLER) {
+        IGrid distributorGrid = distributorNode.getGrid();
+        if (distributorGrid.getPathingService().getControllerState() != ControllerState.NO_CONTROLLER) {
             return false;
         }
-        if (!distributor.getMainNode().getGrid().getMachines(ChannelHubBlockEntity.class).isEmpty()) {
+        if (!distributorGrid.getMachines(ChannelHubBlockEntity.class).isEmpty()) {
             return false;
         }
         boolean crossDimension = isCrossDimension(distributor, hub);

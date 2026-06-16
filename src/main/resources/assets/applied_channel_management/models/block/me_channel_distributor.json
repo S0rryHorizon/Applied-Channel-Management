@@ -1,4 +1,8 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": { "all": "ae2:block/wireless_access_point" }
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "applied_channel_management:block/me_channel_distributor_bottom",
+    "side": "applied_channel_management:block/me_channel_distributor_side",
+    "top": "applied_channel_management:block/me_channel_distributor_top"
+  }
 }

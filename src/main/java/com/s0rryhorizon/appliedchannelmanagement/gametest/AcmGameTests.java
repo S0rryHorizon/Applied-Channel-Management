@@ -39,8 +39,8 @@ public final class AcmGameTests {
         BlockPos controllerPos = new BlockPos(1, 1, 1);
         BlockPos hubPos = new BlockPos(2, 1, 1);
         BlockPos sourcePowerPos = new BlockPos(1, 1, 2);
-        BlockPos distributorPos = new BlockPos(8, 1, 1);
-        BlockPos remoteDevicePos = new BlockPos(9, 1, 1);
+        BlockPos distributorPos = new BlockPos(4, 1, 1);
+        BlockPos remoteDevicePos = new BlockPos(5, 1, 1);
 
         helper.setBlock(controllerPos, AEBlocks.CONTROLLER.block());
         helper.setBlock(sourcePowerPos, AEBlocks.CREATIVE_ENERGY_CELL.block());
