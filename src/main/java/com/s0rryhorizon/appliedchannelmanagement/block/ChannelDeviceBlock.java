@@ -3,13 +3,20 @@ package com.s0rryhorizon.appliedchannelmanagement.block;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -19,6 +26,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.serialization.MapCodec;
 
+import com.s0rryhorizon.appliedchannelmanagement.AppliedChannelManagement;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.AbstractChannelDeviceBlockEntity;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.ChannelDistributorBlockEntity;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.ChannelHubBlockEntity;
@@ -27,6 +35,11 @@ import com.s0rryhorizon.appliedchannelmanagement.menu.ChannelDeviceMenu;
 import com.s0rryhorizon.appliedchannelmanagement.data.HubRegistrySavedData;
 
 public final class ChannelDeviceBlock extends BaseEntityBlock {
+    private static final TagKey<Item> WRENCH = TagKey.create(Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("c", "tools/wrench"));
+    private static final TagKey<Block> WRENCH_DISASSEMBLE = TagKey.create(Registries.BLOCK,
+            ResourceLocation.fromNamespaceAndPath(AppliedChannelManagement.MOD_ID, "ae2_wrench_disassemble"));
+
     private final boolean hub;
 
     public ChannelDeviceBlock(Properties properties, boolean hub) {
@@ -77,6 +90,20 @@ public final class ChannelDeviceBlock extends BaseEntityBlock {
             serverPlayer.openMenu(device, buffer -> ChannelDeviceMenu.writeOpeningData(buffer, device, serverPlayer));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+            Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (player.isShiftKeyDown() && stack.is(WRENCH) && state.is(WRENCH_DISASSEMBLE)) {
+            if (!level.isClientSide) {
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                dropResources(state, level, pos, blockEntity, player, stack);
+                level.removeBlock(pos, false);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Nullable

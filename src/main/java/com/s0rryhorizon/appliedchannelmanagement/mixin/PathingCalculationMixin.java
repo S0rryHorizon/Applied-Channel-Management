@@ -24,6 +24,7 @@ import appeng.me.pathfinding.IPathItem;
 import appeng.me.pathfinding.PathingCalculation;
 
 import com.s0rryhorizon.appliedchannelmanagement.grid.IChannelPoolService;
+import com.s0rryhorizon.appliedchannelmanagement.config.AcmServerConfig;
 import com.s0rryhorizon.appliedchannelmanagement.runtime.WirelessLinkManager;
 import com.s0rryhorizon.appliedchannelmanagement.runtime.WirelessLinkMetadata;
 
@@ -100,7 +101,8 @@ public abstract class PathingCalculationMixin {
         if (acm$wirelessPhase) {
             WirelessLinkMetadata metadata = acm$findWirelessLink(start);
             if (acm$allocated >= grid.getService(IChannelPoolService.class).getCapacity()
-                    || metadata != null && acm$distributorAllocations.getOrDefault(metadata.distributorId(), 0) >= 32) {
+                    || metadata != null && acm$distributorAllocations.getOrDefault(metadata.distributorId(), 0)
+                            >= AcmServerConfig.MAX_DISTRIBUTOR_CHANNELS.get()) {
                 cir.setReturnValue(false);
             }
         }

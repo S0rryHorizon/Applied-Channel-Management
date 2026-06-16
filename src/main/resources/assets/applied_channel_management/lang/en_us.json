@@ -1,6 +1,7 @@
 {
   "block.applied_channel_management.me_channel_hub": "ME Channel Hub",
   "block.applied_channel_management.me_channel_distributor": "ME Channel Distributor",
+  "itemGroup.applied_channel_management.main": "Applied Channel Management",
   "screen.applied_channel_management.button.apply": "Apply",
   "screen.applied_channel_management.button.hubs": "Hubs v",
   "screen.applied_channel_management.button.players": "Players v",

@@ -1,6 +1,7 @@
 {
   "block.applied_channel_management.me_channel_hub": "ME 频道集线器",
   "block.applied_channel_management.me_channel_distributor": "ME 频道分发器",
+  "itemGroup.applied_channel_management.main": "应用频道管理",
   "screen.applied_channel_management.button.apply": "应用",
   "screen.applied_channel_management.button.hubs": "集线器 v",
   "screen.applied_channel_management.button.players": "玩家 v",

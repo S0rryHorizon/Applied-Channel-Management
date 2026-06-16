@@ -30,11 +30,13 @@ public final class AppliedChannelManagement {
     public AppliedChannelManagement(IEventBus modBus, ModContainer container) {
         AcmBlocks.REGISTER.register(modBus);
         AcmItems.REGISTER.register(modBus);
+        AcmCreativeTabs.REGISTER.register(modBus);
         AcmBlockEntities.REGISTER.register(modBus);
         AcmMenus.REGISTER.register(modBus);
         AcmBlockEntities.registerCapabilities(modBus);
-        modBus.addListener(AcmCreativeTabs::addItems);
         modBus.addListener(AcmNetwork::register);
+        modBus.addListener(AcmServerConfig::onLoad);
+        modBus.addListener(AcmServerConfig::onReload);
         GridServices.register(IChannelPoolService.class, ChannelPoolService.class);
         NeoForge.EVENT_BUS.addListener(WirelessLinkManager::onServerTick);
         container.registerConfig(ModConfig.Type.SERVER, AcmServerConfig.SPEC);

@@ -16,8 +16,10 @@ import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridConnection;
 import appeng.api.networking.IGridNode;
+import appeng.api.networking.pathing.ChannelMode;
 import appeng.api.networking.pathing.ControllerState;
 import appeng.blockentity.networking.ControllerBlockEntity;
+import appeng.me.service.PathingService;
 
 import com.s0rryhorizon.appliedchannelmanagement.AppliedChannelManagement;
 import com.s0rryhorizon.appliedchannelmanagement.blockentity.ChannelDistributorBlockEntity;
@@ -139,7 +141,7 @@ public final class WirelessLinkManager {
             if (distributor == null || hub == null || !isStillValid(distributor, hub, entry.getValue())) {
                 disconnect(entry.getKey());
             } else {
-                distributor.setLinkPowerUsage(isCrossDimension(distributor, hub));
+                distributor.setLinkPowerUsage(hub);
             }
         }
 
@@ -169,7 +171,8 @@ public final class WirelessLinkManager {
 
     private static boolean isSelectedHubForGrid(ChannelHubBlockEntity hub) {
         IGrid grid = hub.getMainNode().getGrid();
-        if (grid.getPathingService().getControllerState() != ControllerState.CONTROLLER_ONLINE) {
+        if (!isInfiniteChannelMode(grid)
+                && grid.getPathingService().getControllerState() != ControllerState.CONTROLLER_ONLINE) {
             return false;
         }
         return HUBS.values().stream()
@@ -198,21 +201,28 @@ public final class WirelessLinkManager {
     }
 
     private static void connect(ChannelDistributorBlockEntity distributor, ChannelHubBlockEntity hub) {
-        IGridNode controller = findControllerNode(hub.getMainNode().getGrid());
+        IGridNode source = findSourceNode(hub);
         IGridNode distributorNode = distributor.getMainNode().getNode();
-        if (controller == null || distributorNode == null) {
+        if (source == null || distributorNode == null) {
             return;
         }
         try {
-            IGridConnection connection = GridHelper.createConnection(controller, distributorNode);
+            IGridConnection connection = GridHelper.createConnection(source, distributorNode);
             var metadata = new WirelessLinkMetadata(distributor.getDistributorId(), hub.getHubId(),
                     distributor.getPriority());
             CONNECTION_METADATA.put(connection, metadata);
             ACTIVE_LINKS.put(distributor.getDistributorId(), new ActiveLink(connection, metadata));
-            distributor.setLinkPowerUsage(isCrossDimension(distributor, hub));
+            distributor.setLinkPowerUsage(hub);
         } catch (IllegalStateException exception) {
             AppliedChannelManagement.LOGGER.debug("Unable to establish wireless channel link", exception);
         }
+    }
+
+    private static IGridNode findSourceNode(ChannelHubBlockEntity hub) {
+        if (isInfiniteChannelMode(hub.getMainNode().getGrid())) {
+            return hub.getMainNode().getNode();
+        }
+        return findControllerNode(hub.getMainNode().getGrid());
     }
 
     private static IGridNode findControllerNode(IGrid grid) {
@@ -234,6 +244,10 @@ public final class WirelessLinkManager {
 
     private static boolean isCrossDimension(ChannelDistributorBlockEntity distributor, ChannelHubBlockEntity hub) {
         return distributor.getLevel() != hub.getLevel();
+    }
+
+    private static boolean isInfiniteChannelMode(IGrid grid) {
+        return ((PathingService) grid.getPathingService()).getChannelMode() == ChannelMode.INFINITE;
     }
 
     private static void disconnect(UUID distributorId) {

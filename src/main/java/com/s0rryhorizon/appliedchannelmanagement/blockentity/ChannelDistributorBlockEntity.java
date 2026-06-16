@@ -71,10 +71,8 @@ public final class ChannelDistributorBlockEntity extends AbstractChannelDeviceBl
         WirelessLinkManager.requestReconcile();
     }
 
-    public void setLinkPowerUsage(boolean crossDimension) {
-        mainNode.setIdlePowerUsage(crossDimension
-                ? AcmServerConfig.CROSS_DIMENSION_POWER.get()
-                : AcmServerConfig.DISTRIBUTOR_POWER.get());
+    public void setLinkPowerUsage(ChannelHubBlockEntity hub) {
+        mainNode.setIdlePowerUsage(AcmServerConfig.getDistributorPower(this, hub));
     }
 
     public void clearLinkPowerUsage() {

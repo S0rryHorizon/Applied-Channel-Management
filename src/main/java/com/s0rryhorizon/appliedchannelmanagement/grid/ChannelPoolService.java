@@ -2,6 +2,8 @@ package com.s0rryhorizon.appliedchannelmanagement.grid;
 
 import java.util.ArrayList;
 
+import net.minecraft.world.level.Level;
+
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridServiceProvider;
 import appeng.api.networking.pathing.ChannelMode;
@@ -25,12 +27,19 @@ public final class ChannelPoolService implements IChannelPoolService, IGridServi
             return Integer.MAX_VALUE;
         }
         var positions = new ArrayList<net.minecraft.core.BlockPos>();
+        Level level = null;
         for (var node : grid.getMachineNodes(ControllerBlockEntity.class)) {
             if (node.getOwner() instanceof ControllerBlockEntity controller) {
                 positions.add(controller.getBlockPos());
+                if (level == null) {
+                    level = controller.getLevel();
+                }
             }
         }
-        return ControllerFaceCounter.countExposedFaces(positions) * 32;
+        int faces = level == null
+                ? ControllerFaceCounter.countExposedFaces(positions)
+                : ControllerFaceCounter.countAvailableFaces(positions, level);
+        return faces * 32;
     }
 
     @Override
